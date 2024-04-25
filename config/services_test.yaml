@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     menu_file: '%kernel.project_dir%/config/menu.yaml'
+    page_folder: '%kernel.project_dir%/templates/Pages'
+    page_template: '%kernel.project_dir%/templates/Layout/base_page.html.twig'
 
 services:
     # default configuration for services in *this* file
@@ -27,5 +29,10 @@ services:
     App\Service\MenuService:
         arguments:
             $menuFile: '%menu_file%'
+
+    App\Command\GeneratePageCommand:
+        arguments:
+            $pageFolder: '%page_folder%'
+            $pageTemplate: '%page_template%'
 
     
