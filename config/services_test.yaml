@@ -21,10 +21,11 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-
     App\Constract\Service\MenuServiceInterface:
         alias: App\Service\MenuService
 
     App\Service\MenuService:
         arguments:
             $menuFile: '%menu_file%'
+
+    

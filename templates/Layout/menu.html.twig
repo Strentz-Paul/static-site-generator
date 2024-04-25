@@ -1,0 +1,28 @@
+{# 
+    This is the base menu layout, feel free to adapt this to your need.
+#}
+{% set menu_items = get_menu_items() %}
+<div class="flex justify-end sticky top-20">
+<ul>
+    {% for key, item in menu_items %}
+        <li class="font-semibold text-sm my-px">
+            {% if item.url is null %}
+                {{ key }}
+            {% else %}
+                <a href="{{ item.url }}" class="hover:underline hover:text-pink-300">{{ key }}</a>
+            {% endif %}
+            {% if item.sub_menu is defined %}
+                <ul class="pl-5 text-xs font-medium">
+                    {% for sub_key, sub_item in item.sub_menu %}
+                        <li>
+                            <a href="{{ sub_item.url }}"{% if sub_item.external is defined and sub_item.external is same as true %} target="_blank"{% endif %}  class="hover:underline hover:text-pink-300">{{ sub_key }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </li>
+    {% else %}
+        <li class="italic text-gray-600 text-xs">Please check documentation to provide menu items</li>
+    {% endfor %}
+</ul>
+</div>
