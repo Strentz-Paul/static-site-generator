@@ -7,6 +7,7 @@ parameters:
     menu_file: '%kernel.project_dir%/config/menu.yaml'
     page_folder: '%kernel.project_dir%/templates/Pages'
     page_template: '%kernel.project_dir%/templates/Layout/base_page.html.twig'
+    page_template_with_slug: '%kernel.project_dir%/templates/Layout/base_page_with_slug.html.twig'
 
 services:
     # default configuration for services in *this* file
@@ -31,6 +32,13 @@ services:
         arguments:
             $menuFile: '%menu_file%'
 
+    App\Constract\Service\ArticleServiceInterface:
+        alias: App\Service\ArticleService
+
+    App\Service\ArticleService:
+        arguments:
+            $pageFolder: '%page_folder%'
+
     App\Command\GeneratePageCommand:
         arguments:
             $pageFolder: '%page_folder%'
@@ -40,6 +48,7 @@ services:
         arguments:
             $pageFolder: '%page_folder%'
             $pageTemplate: '%page_template%'
+            $pageTemplateWithSlug: '%page_template_with_slug%'
 
     Symfony\Bundle\MakerBundle\Generator:
         public: true

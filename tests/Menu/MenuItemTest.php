@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\Menu;
 
 use App\Contract\Service\MenuServiceInterface;
 use App\Service\MenuService;
@@ -33,8 +33,16 @@ class MenuItemTest extends KernelTestCase
         self::assertSame('Socials', $keys[3]);
         $values = array_values($result);
         self::assertSame(['url' => '/'], $values[0]);
-        self::assertSame(['url' => '/articles'], $values[1]);
+        self::assertSame(['url' => '/articles', 'has_slug' => true], $values[1]);
         self::assertSame(['url' => '/about'], $values[2]);
-        self::assertSame(['url' => null, 'sub_menu' => ['X' => ['url' => 'https://x.com', 'external' => true], 'Github'  => ['url' => 'https://github.com', 'external' => true], 'Me'  => ['url' => '/socials/me']]], $values[3]);
+        self::assertSame(['url' => null, 'sub_menu' => ['X' => ['url' => 'https://x.com', 'external' => true], 'Github'  => ['url' => 'https://github.com', 'external' => true]]], $values[3]);
+    }
+
+    public function testGetDirectoriesForSlug(): void
+    {
+        $result = $this->service->getDirectoriesForSlug();
+        self::assertIsArray($result);
+        self::assertCount(1, $result);
+        self::assertSame('Articles', $result[0]);
     }
 }

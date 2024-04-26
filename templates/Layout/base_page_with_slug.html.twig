@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <h1 class="font-black text-2xl mb-5">{{ title }}</h1>
+    {% if articles is defined %}
+        <ul class="pl-5">
+            {% for article in articles %}
+                <li class="list-disc text-sm">
+                    <a href="{{ article.url }}" class="hover:text-pink-300">{{ article.title }}<span class="text-xs italic"> -- {{ article.date }}</span></a>{% if article.isDraft is same as true %}&nbsp;<span class="text-xs text-gray-400 italic">(This page is a draft, only visible in draft mode)</span>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

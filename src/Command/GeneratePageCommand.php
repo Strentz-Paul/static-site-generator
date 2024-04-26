@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Contract\Service\MenuServiceInterface;
+use DateTime;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -10,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[AsCommand(
     name: 'generate:page',
@@ -21,7 +24,8 @@ class GeneratePageCommand extends Command
 
     public function __construct(
         private readonly string $pageFolder, 
-        private readonly string $pageTemplate
+        private readonly string $pageTemplate,
+        private readonly MenuServiceInterface $menuService
     ) {
         parent::__construct();
     }
@@ -40,20 +44,23 @@ class GeneratePageCommand extends Command
         if ($pageName === null) {
             $pageName = $io->ask('Choose a Page name (e.g. <comment>Why am I using StaticGen</comment>) ');
         }
-        $pageName = strtolower(str_replace(' ', '_', $pageName));
-        $finder = new Finder();
-        foreach ($finder->directories()->in($this->pageFolder) as $dir) {
-            $directories[] = $dir->getBasename();
-        }
+        $slugger = new AsciiSlugger();
+        $pageNameSlugged = strtolower($slugger->slug($pageName));
+        $directories = $this->menuService->getDirectoriesForSlug();
         $fileBasePathUserSelection = $io->choice('Where do you want to store the page', $directories);
         $fileBasePath = $this->pageFolder . '/' . $fileBasePathUserSelection;
-        $filePath = $fileBasePath . '/' . $pageName . '.html.twig';
+        $filePath = $fileBasePath . '/' . $pageNameSlugged . '.html.twig';
         if (file_exists($filePath)) {
-            $io->error(sprintf('A page named %s already exist at this path %s', $pageName, $filePath));
+            $io->error(sprintf('A page named %s already exist at this path %s', $pageNameSlugged, $filePath));
             return Command::FAILURE;
         }
         $fs = new Filesystem();
         $fs->copy($this->pageTemplate, $filePath);
+        $content = file_get_contents($filePath);
+        $date = (new DateTime())->format('d-m-Y');
+        $informations = "{#\n---\nTitle : $pageName\nDate : $date\nPublished : false\n---\n#}\n";
+        $content = $informations . $content;
+        $fs->dumpFile($filePath, $content);
         return Command::SUCCESS;
     }
 }

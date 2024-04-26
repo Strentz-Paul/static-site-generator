@@ -26,6 +26,7 @@ class InitProjectCommand extends Command
     public function __construct(
         private readonly string $pageFolder,
         private readonly string $pageTemplate,
+        private readonly string $pageTemplateWithSlug,
         private readonly MenuServiceInterface $menuService,
         private readonly Generator $generator
     ) {
@@ -37,6 +38,7 @@ class InitProjectCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $menu = $this->menuService->getMenuItems();
         $filesToCreate = [];
+        $filesWithSlug = [];
         foreach ($menu as $key => $item) {
             $pageNameToCreate = $item['url'];
             if ($pageNameToCreate === null) {
@@ -85,6 +87,11 @@ class InitProjectCommand extends Command
             if ($isHomePage) {
                 $fullFilePath = $this->pageFolder . '/' . $pageNameToCreate;
             }
+            $hasSlug = false;
+            if (isset($item['has_slug'])) {
+                $hasSlug = true;
+                $filesWithSlug[] = $fullFilePath;
+            }
             $filesToCreate[] = $fullFilePath;
             if (isset($item['sub_menu'])) {
                 $baseSubPath = $this->pageFolder . '/' . $key;
@@ -103,17 +110,30 @@ class InitProjectCommand extends Command
                         $pageNameToCreate .= '.html.twig';
                     }
                     $fullFilePath = $baseSubPath . '/' . $subKey . '/' . $pageNameToCreate;
+                    if (isset($item['has_slug'])) {
+                        $filesWithSlug[] = $fullFilePath;
+                    }
                     $filesToCreate[] = $fullFilePath;
                 }
             }
+        }
+        if (count($filesWithSlug) > 1) {
+            $io->error('There is more than one menu item for slug part. Please check the documentation');
+            return Command::FAILURE;
         }
 
         foreach ($filesToCreate as $file) {
             if (file_exists($file)) {
                 continue;
             }
+            $hasSlug = false;
+            $pageTemplate = $this->pageTemplate;
+            if (in_array($file, $filesWithSlug)) {
+                $hasSlug = true;
+                $pageTemplate = $this->pageTemplateWithSlug;
+            }
             $fs = new Filesystem();
-            $fs->copy($this->pageTemplate, $file);
+            $fs->copy($pageTemplate, $file);
             $explodeFilePath = str_replace('/app/templates/Pages/', '', $file);
             $hasMoreEntropy = count(explode('/', $explodeFilePath)) > 2;
             $isHomeContext = count(explode('/', $explodeFilePath)) === 1;
@@ -158,19 +178,45 @@ class InitProjectCommand extends Command
                 Route::class,
             ]);
             $defaultTemplateName = $isHomeContext ? 'index.html.twig' : '/index.html.twig';
-            $templateName = $templateName . $defaultTemplateName;
-            $this->generator->generateController(
-                $customControllerFullName,
-                __DIR__ . '/../Templates/Controller.tpl.php',
-                [
-                    'use_statements' => $useStatements,
-                    'route_path' => $customRoutePath,
-                    'route_name' => $routeName,
-                    'method_name' => 'index',
-                    'with_template' => true,
-                    'template_name' => $templateName,
-                ]
-            );
+            $templateNameIndex = $templateName . $defaultTemplateName;
+            if ($hasSlug) {
+                if ($isHomeContext) {
+                    throw new Exception('Home page cannot be with slug');
+                }
+                $customRoutePathSlug = $customRoutePath . '/{slug}';
+                $routeNameSlug = $routeName . '_slug';
+                $templateNameSlug = $templateName . "/\$slug.html.twig";
+                $this->generator->generateController(
+                    $customControllerFullName,
+                    __DIR__ . '/../Templates/ControllerWithSlug.tpl.php',
+                    [
+                        'use_statements' => $useStatements,
+                        'route_path' => $customRoutePath,
+                        'route_name' => $routeName,
+                        'method_name' => 'index',
+                        'with_template' => true,
+                        'template_name' => $templateNameIndex,
+                        'route_path_slug' => $customRoutePathSlug,
+                        'route_name_slug' => $routeNameSlug,
+                        'method_name_slug' => 'pageWithSlug',
+                        'template_name_slug' => $templateNameSlug,
+                        'page_title' => $templateName
+                    ]
+                );
+            } else {
+                $this->generator->generateController(
+                    $customControllerFullName,
+                    __DIR__ . '/../Templates/Controller.tpl.php',
+                    [
+                        'use_statements' => $useStatements,
+                        'route_path' => $customRoutePath,
+                        'route_name' => $routeName,
+                        'method_name' => 'index',
+                        'with_template' => true,
+                        'template_name' => $templateNameIndex,
+                    ]
+                );
+            }
             $this->generator->writeChanges();
         }
         $io->success('Init done, you can now update all the files in templates/Pages folder');

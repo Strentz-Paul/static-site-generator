@@ -22,6 +22,32 @@ class MenuService implements MenuServiceInterface
         return $this->processMenu($menuData);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getDirectoriesForSlug(): array
+    {
+        $menuData = Yaml::parseFile($this->menuFile);
+        $menuArray = $this->processMenu($menuData);
+        $directories = [];
+        foreach ($menuArray as $key => $item) {
+            if (!isset($item['has_slug']) && !isset($item['sub_menu'])) {
+                continue;
+            }
+            if (isset($item['has_slug'])) {
+                $directories[] = $key;
+            }
+            if (isset($item['sub_menu'])) {
+                foreach ($item['sub_menu'] as $keySub => $itemSub) {
+                    if (isset($itemSub['has_slug'])) {
+                        $directories[] = $key . '/' . $keySub;
+                    }
+                }
+            }
+        }
+        return $directories;
+    }
+
     private function processMenu(array $menuData): array
     {
         $menu = [];
@@ -34,6 +60,9 @@ class MenuService implements MenuServiceInterface
                 $menu[$key] = ['url' => $value['url'], 'sub_menu' => $subMenu];
             } else {
                 $menu[$key] = ['url' => $value['url']];
+            }
+            if (isset($value['has_slug'])) {
+                $menu[$key]['has_slug'] = true;
             }
         }
 
