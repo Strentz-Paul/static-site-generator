@@ -9,3 +9,4 @@
 - init project cli
 - create page cli
 - define menu config file
+- generation of templates and controller file from menu configuration
