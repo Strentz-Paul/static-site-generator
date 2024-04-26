@@ -14,5 +14,3 @@ menu:
       Github:
         url: 'https://github.com'
         external: true
-      Me:
-        url: '/socials/me'

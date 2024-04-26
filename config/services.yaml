@@ -40,3 +40,28 @@ services:
         arguments:
             $pageFolder: '%page_folder%'
             $pageTemplate: '%page_template%'
+
+    Symfony\Bundle\MakerBundle\Generator:
+        public: true
+        arguments:
+            $namespacePrefix: 'App'
+            $templateComponentGenerator: '@Symfony\Bundle\MakerBundle\Util\TemplateComponentGenerator'
+
+    Symfony\Bundle\MakerBundle\FileManager:
+        public: true
+        arguments:
+            $rootDirectory: '%kernel.project_dir%'
+    
+    Symfony\Bundle\MakerBundle\Util\AutoloaderUtil:
+        public: true
+
+    Symfony\Bundle\MakerBundle\Util\MakerFileLinkFormatter:
+        public: true
+    
+    Symfony\Bundle\MakerBundle\Util\ComposerAutoloaderFinder:
+        public: true
+        arguments:
+            $rootNamespace: 'App'
+    
+    Symfony\Bundle\MakerBundle\Util\TemplateComponentGenerator:
+        public: true

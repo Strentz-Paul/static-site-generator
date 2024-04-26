@@ -3,15 +3,19 @@
 namespace App\Command;
 
 use Exception;
+use Symfony\Bundle\MakerBundle\Str;
+use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Component\Filesystem\Filesystem;
 use App\Contract\Service\MenuServiceInterface;
-use function PHPUnit\Framework\throwException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Attribute\AsCommand;
-
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Bundle\MakerBundle\Util\UseStatementGenerator;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[AsCommand(
     name: 'init:project',
@@ -22,7 +26,8 @@ class InitProjectCommand extends Command
     public function __construct(
         private readonly string $pageFolder,
         private readonly string $pageTemplate,
-        private readonly MenuServiceInterface $menuService
+        private readonly MenuServiceInterface $menuService,
+        private readonly Generator $generator
     ) {
         parent::__construct();
     }
@@ -102,12 +107,71 @@ class InitProjectCommand extends Command
                 }
             }
         }
+
         foreach ($filesToCreate as $file) {
             if (file_exists($file)) {
                 continue;
             }
             $fs = new Filesystem();
             $fs->copy($this->pageTemplate, $file);
+            $explodeFilePath = str_replace('/app/templates/Pages/', '', $file);
+            $hasMoreEntropy = count(explode('/', $explodeFilePath)) > 2;
+            $isHomeContext = count(explode('/', $explodeFilePath)) === 1;
+            
+            $controllerNameArray = explode('/', $file);
+            $arrayLenght = count($controllerNameArray);
+            $controllerName = $controllerNameArray[$arrayLenght - 2];
+            $controllerClassNameDetails = $this->generator->createClassNameDetails(
+                $controllerName,
+                'Controller\\',
+                'Controller'
+            );
+            $customRoutePath = Str::asRoutePath($controllerClassNameDetails->getRelativeNameWithoutSuffix());
+            $routeName = Str::asRouteName($controllerClassNameDetails->getRelativeNameWithoutSuffix());
+            $templateName = Str::asFilePath($controllerClassNameDetails->getRelativeNameWithoutSuffix());
+            $customControllerFullName = $controllerClassNameDetails->getFullName();
+            if ($hasMoreEntropy) {
+                $customRoutePath = '/' . strtolower(str_replace('/index.html.twig', '', $explodeFilePath));
+                $routeName = 'app_' . strtolower(str_replace(['/index.html.twig', '/'], ['', '_'], $explodeFilePath));
+                $templateName = str_replace('/index.html.twig', '', $explodeFilePath);
+                $customControllerFullName = $controllerClassNameDetails->getRelativeNameWithoutSuffix();
+                $fullNamespace = $controllerClassNameDetails->getFullName();
+                $className = $controllerClassNameDetails->getShortName();
+                $customControllerFullName = str_replace($className, '', $fullNamespace);
+                $indexPages = array_search('Pages', $controllerNameArray);
+                $indexControllerName = array_search($controllerClassNameDetails->getRelativeNameWithoutSuffix(), $controllerNameArray);
+                for ($i = $indexPages + 1; $i <= $indexControllerName; $i++) {
+                    $customControllerFullName .= $controllerNameArray[$i] . '\\';
+                }
+                $customControllerFullName .= $className;
+            }
+            if ($isHomeContext) {
+                $customRoutePath = '/';
+                $routeName = 'app_home';
+                $templateName = '';
+                $customControllerFullName = 'App\Controller\HomeController';
+            }
+    
+            $useStatements = new UseStatementGenerator([
+                AbstractController::class,
+                Response::class,
+                Route::class,
+            ]);
+            $defaultTemplateName = $isHomeContext ? 'index.html.twig' : '/index.html.twig';
+            $templateName = $templateName . $defaultTemplateName;
+            $this->generator->generateController(
+                $customControllerFullName,
+                __DIR__ . '/../Templates/Controller.tpl.php',
+                [
+                    'use_statements' => $useStatements,
+                    'route_path' => $customRoutePath,
+                    'route_name' => $routeName,
+                    'method_name' => 'index',
+                    'with_template' => true,
+                    'template_name' => $templateName,
+                ]
+            );
+            $this->generator->writeChanges();
         }
         $io->success('Init done, you can now update all the files in templates/Pages folder');
         return Command::SUCCESS;

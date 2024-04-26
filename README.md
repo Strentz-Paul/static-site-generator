@@ -1,7 +1,7 @@
 # IN PROGRESS
 - Menu layout
 - Define divider in menu
-- Define controller route for pages (maybe create methods for all pages created check how make crud work)
+- Update Menu and template for slug articles
 - General page layout
 - Brand layout
 
