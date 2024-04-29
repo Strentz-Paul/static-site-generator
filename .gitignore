@@ -8,6 +8,7 @@
 /var/
 /vendor/
 .vscode
+.DS_Store
 docker/db/
 ###< symfony/framework-bundle ###
 
@@ -24,4 +25,9 @@ docker/db/
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
+test/assets/export/
 ###< phpunit/phpunit ###
+
+###> project ###
+export/
+###< project ###
