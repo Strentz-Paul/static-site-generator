@@ -107,7 +107,6 @@ readonly class ExportService implements ExportServiceInterface
             $content = $this->convertTwigToHtml($twigFilePath, $specificTemplateFolder);
             $fs->dumpFile($filePath, $content);
         } catch(Exception $e) {
-            dd($e->getMessage());
             return false;
         }
 

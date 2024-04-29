@@ -3,16 +3,14 @@
 namespace <?= $namespace; ?>;
 
 <?= $use_statements; ?>
-use App\Contract\Service\ArticleServiceInterface;
 
 class <?= $class_name; ?> extends AbstractController
 {
 <?= $generator->generateRouteForControllerMethod($route_path, $route_name); ?>
-    public function <?= $method_name ?>(ArticleServiceInterface $service): <?php if ($with_template) { ?>Response<?php } else { ?>JsonResponse<?php } ?>
+    public function <?= $method_name ?>(): <?php if ($with_template) { ?>Response<?php } else { ?>JsonResponse<?php } ?>
 
     {
-        $articles = $service->getAllFormatedArticles();
-        return $this->render('Pages/<?= ucfirst($template_name) ?>', ['articles' =>  $articles, 'title' => '<?= ucfirst($page_title) ?>']);
+        return $this->render('Pages/<?= ucfirst($template_name) ?>');
     }
 
 

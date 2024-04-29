@@ -38,6 +38,13 @@ class ArticleService implements ArticleServiceInterface
         return $articles;
     }
 
+    public function getTitleData(string $templateName): string
+    {
+        $filePath = $this->pageFolder . '/' . str_replace('Pages', '', $templateName);
+        $allDatas = $this->extractData($filePath);
+        return ucfirst($allDatas[0]);
+    }
+
     private function generateVM(string $filePath): ArticleViewModel
     {
         [$title, $date, $draft] = $this->extractData($filePath);

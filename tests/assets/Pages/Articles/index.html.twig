@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 {% block body %}
+{% set title = get_title_by_path(_self) %}
+{% set articles = get_articles() %}
     <h1 class="font-black text-2xl mb-5">{{ title }}</h1>
     {% if articles is defined %}
         <ul class="pl-5">
