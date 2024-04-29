@@ -6,6 +6,7 @@
 parameters:
     menu_file: '%kernel.project_dir%/config/menu.yaml'
     page_folder: '%kernel.project_dir%/templates/Pages'
+    export_folder: '%kernel.project_dir%/export'
     page_template: '%kernel.project_dir%/templates/Layout/base_page.html.twig'
     page_template_with_slug: '%kernel.project_dir%/templates/Layout/base_page_with_slug.html.twig'
 
@@ -49,6 +50,18 @@ services:
             $pageFolder: '%page_folder%'
             $pageTemplate: '%page_template%'
             $pageTemplateWithSlug: '%page_template_with_slug%'
+
+    App\Command\CompileCommand:
+        arguments:
+            $pageFolder: '%page_folder%'
+
+    App\Constract\Service\ExportServiceInterface:
+        alias: App\Service\ExportService
+
+    App\Service\ExportService:
+        arguments:
+            $pageFolder: '%page_folder%'
+            $exportFolder: '%export_folder%'
 
     Symfony\Bundle\MakerBundle\Generator:
         public: true

@@ -3,6 +3,8 @@
 - Define divider in menu
 - General page layout
 - Brand layout
+- Remove les balises script des fichiers html
+- rendre dynamic en cherchant les controllers qui utilise le template et recuperer les variables de ceux ci
 
 # FEATURES
 - init project cli

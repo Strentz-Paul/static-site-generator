@@ -4,8 +4,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    menu_file: '%kernel.project_dir%/config/menu_test.yaml'
-    page_folder: '%kernel.project_dir%/templates/Pages'
+    menu_file: '%kernel.project_dir%/tests/config/menu_test.yaml'
+    page_folder: '%kernel.project_dir%/tests/assets/Pages'
+    export_folder: '%kernel.project_dir%/tests/assets/export'
     page_template: '%kernel.project_dir%/templates/Layout/base_page.html.twig'
     page_template_with_slug: '%kernel.project_dir%/templates/Layout/base_page_with_slug.html.twig'
 
@@ -37,6 +38,18 @@ services:
     App\Service\ArticleService:
         arguments:
             $pageFolder: '%page_folder%'
+
+    App\Command\CompileCommand:
+        arguments:
+            $pageFolder: '%page_folder%'
+
+    App\Constract\Service\ExportServiceInterface:
+        alias: App\Service\ExportService
+
+    App\Service\ExportService:
+        arguments:
+            $pageFolder: '%page_folder%'
+            $exportFolder: '%export_folder%'
 
     App\Command\GeneratePageCommand:
         arguments:
